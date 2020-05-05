@@ -1,0 +1,454 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[a4paper, 11pt]{article} % Font size (can be 10pt, 11pt or 12pt) and paper size (remove a4paper for US letter paper)
+
+\usepackage[T1,hyphens]{url}
+\usepackage{hyperref}
+
+\usepackage{standalone}
+\usepackage{amsmath}
+
+\usepackage[a4paper,left=3cm,right=3cm]{geometry}
+
+\usepackage{indentfirst}
+%\usepackage[utf8]{inputenc}
+\usepackage{pgfplots}
+\usepackage{color}
+
+\usepackage{enumerate}
+
+\usepackage[protrusion=true,expansion=true]{microtype} % Better typography
+\usepackage{graphicx} % Required for including pictures
+\usepackage{wrapfig} % Allows in-line images
+
+\usepackage{tikz}
+\usetikzlibrary{shapes}
+\usepackage{pgf}
+\usepackage{pgfplots}
+\usetikzlibrary{arrows}
+\usepackage{tkz-graph}
+\usetikzlibrary{shapes.multipart}
+
+\renewcommand{\thesection}{\Roman{section}}
+\usepackage{titlesec}
+%\titlespacing\section{0pt}{20pt plus 4pt minus 2pt}{-5pt plus 2pt minus 2pt}
+
+\usepackage{listings}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\lstset{
+%language=Java,
+basicstyle=\normalsize, % ou \c ca==> basicstyle=\scriptsize,
+upquote=true,
+aboveskip={1.2\baselineskip},
+columns=fullflexible,
+showstringspaces=false,
+extendedchars=true,
+breaklines=true,
+showtabs=false,
+showspaces=false,
+showstringspaces=false,
+identifierstyle=\ttfamily,
+keywordstyle=\color[rgb]{0,0,1},
+commentstyle=\color[rgb]{0.133,0.545,0.133},
+stringstyle=\color[rgb]{0.627,0.126,0.941},
+}
+
+\lstset{% This applies to ALL lstlisting
+    backgroundcolor=\color{yellow!10},%
+    numbers=left, numberstyle=\tiny, stepnumber=2, numbersep=5pt,%
+    }%
+
+% Applies only when you use it
+\lstdefinestyle{MyLang}{
+    basicstyle=\small\ttfamily\color{magenta},%
+    breaklines=true,%                                      allow line breaks
+    moredelim=[s][\color{green!50!black}\ttfamily]{'}{'},% single quotes in green
+    moredelim=*[s][\color{black}\ttfamily]{options}{\}},%  options in black (until trailing })
+    commentstyle={\color{gray}\itshape},%                  gray italics for comments
+    morecomment=[l]{//},%                                  define // comment
+    emph={%
+        STRING%                                            literal strings listed here
+        },emphstyle={\color{blue}\ttfamily},%              and formatted in blue
+    alsoletter={:,|,;},%
+    morekeywords={:,|,;},%                                 define the special characters
+    keywordstyle={\color{black}},%                         and format them in black
+}
+
+\lstdefinestyle{Pyth}{
+	language=Python
+}
+
+\titleformat{\paragraph}[hang]{\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}{0pt}{3.25ex plus 1ex minus .2ex}{1em}
+
+\usepackage{mathpazo} % Use the Palatino font
+\usepackage[T1]{fontenc} % Required for accented characters
+\linespread{1.05} % Change line spacing here, Palatino benefits from a slight increase by default
+
+\makeatletter
+\renewcommand\@biblabel[1]{\textbf{#1.}} % Change the square brackets for each bibliography item from '[1]' to '1.'
+\renewcommand{\@listI}{\itemsep=0pt} % Reduce the space between items in the itemize and enumerate environments and the bibliography
+
+\renewcommand{\maketitle}{ % Customize the title - do not edit title and author name here, see the TITLE block below
+\begin{flushright} % Right align
+{\LARGE\@title} % Increase the font size of the title
+
+\vspace{50pt} % Some vertical space between the title and author name
+
+{\large\@author} % Author name
+\\\@date % Date
+
+\vspace{-20pt} % Some vertical space between the author block and abstract
+\end{flushright}
+}
+
+%----------------------------------------------------------------------------------------
+%	TITLE
+%----------------------------------------------------------------------------------------
+
+\title{\textbf{Intelligence Artificielle}\\ % Title
+Deep Q-Learning for PAC-MAN} % Subtitle
+
+\author{\textsc{Louis Annabi - Fran\c cois Hernandez - L\'eo Pons} % Author
+\\{\textit{CentraleSup\'elec}}} % Institution
+
+\date{\today} % Date
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\maketitle % Print the title section
+
+\pagebreak
+\tableofcontents
+
+\pagebreak
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT AND KEYWORDS
+%----------------------------------------------------------------------------------------
+
+%\renewcommand{\abstractname}{Summary} % Uncomment to change the name of the abstract to something else
+
+
+
+\vspace{30pt} % Some vertical space between the abstract and first section
+
+%----------------------------------------------------------------------------------------
+%	ESSAY BODY
+%----------------------------------------------------------------------------------------
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+Ce document fait le bilan de nos recherches au sujet du Deep-Q Learning et de ses possibilités d'application au jeu Pacman. Il fait notamment le point sur les tentatives décrites dans l'article \textit{Recurrent Deep Q-Learning for PAC-MAN} (Kushal Ranjan, Amelia Christensen, Bernardo Ramos, \textsc{Stanford}). \\
+
+Le détail de notre implémentation et de nos conclusions sera donné lors de notre présentation le Lundi 20/03.\\
+
+
+%------------------------------------------------
+\pagebreak
+
+\section{Description du problème}
+
+\subsection{Processus de décision Markovien}
+
+Pacman est un jeu non déterministe puisque l'état suivant n'est pas uniquement déterminée par l'action du joueur. En effet, lorsque les fantômes se trouvent à des croisements, ils peuvent choisir leur direction de manière aléatoire. \\
+
+Pour représenter ce non-déterminisme, on modélise notre jeu comme un processus de décision markovien (MDP). Un processus de décision markovien est un processus stochastique basé sur l'hypothèse de Markov : les probabilités de transitions ne dépendent que des $n$ états précédents. \\
+
+Plus formellement, un processus de décision markovien est défini par :
+\begin{itemize}
+\item Un ensemble d'états $s \in  S$
+\item Un ensemble d'actions $a \in  A$
+\item Une fonction de transition $T(s,a,s')$
+\item Une fonction de récompense $R(s,a,s')$
+\item Un état de départ $start \in S$
+\end{itemize}
+
+Avec ce formalisme, le but du jeu est de déterminer une politique de déplacement $\pi : S \rightarrow A$ qui maximise le total des récompenses $R(s,a,s')$ obtenues sur toute la durée de la partie.
+
+\subsection{Pacman comme MDP}
+
+Le fonctionnement du Pacman correspond bien à un processus de décision markovien. En effet les probabilités de transitions d'un état $s$ à un état $s'$ ne dépendent que de l'état $s$ et de l'état précédant $s$. L'ensemble des actions possibles est alors $A = \{up, down, left, right,$ $stay\}$ et un état $s$ est défini par la position du Pacman, ainsi que par les positions des récompenses et des fantômes.\\
+
+Le non-déterminisme n'opère qu'au niveau des déplacements des fantômes, avec comme seule contrainte qu'il ne peuvent pas faire de demi-tour. Pour connaître la probabilité de transition vers un état $s'$ il faut connaitre l'état $s$ ainsi que les directions courantes des fantômes, qui sont données par la connaissance de l'état précédant $s$. \\
+
+\begin{figure}[h]
+	\includegraphics[scale=0.5]{img/non-determinism.png}
+	\caption{Non-déterminisme dans Pacman.}
+\end{figure}
+
+L'image ci-dessous représente une succession d'états. Nous voyons que pour passer de l'état 1 à l'état 2, seule l'action du joueur importe. En revanche, si le joueur continue d'aller à gauche à l'état 2, l'état suivant peut être soit A soit B. \\
+
+En reprenant le formalisme introduit précédemment, on a :
+
+\begin{eqnarray*}
+T(s_1, left, s_2) = 1
+\end{eqnarray*} 
+\begin{eqnarray*}
+T(s_2, left, s_A) = 0.5
+\end{eqnarray*} 
+\begin{eqnarray*}
+T(s_2, left, s_B) = 0.5
+\end{eqnarray*}
+\vspace{0.1cm}
+
+
+En réalité, $T$ devrait aussi avoir en paramètre l'état précédent. Pour simplifier les notations, $T$ conservera cette forme par la suite.
+
+%------------------------------------------------
+\pagebreak
+
+\section{Solutions envisageables}
+
+\subsection{Définitions}
+
+Le but du problème est donc de déterminer une politique $\pi : S \rightarrow A$ permettant de choisir à chaque instant l'action à effectuer maximisant la récompense totale espérée $R$ décrite en partie précédente.\\
+
+On considèrera pour cela la value function qui renseigne l'espérance du résultat pour une politique et un état initial donnés :
+
+\begin{eqnarray}
+V_\pi(s_0) = E[R\mid(s_0,\pi)]
+\end{eqnarray}
+\vspace{0.1cm}
+
+Trouver une politique optimale revient donc à maximiser $V_\pi$. On notera sa forme optimale :
+
+\begin{eqnarray}
+V_{opt}(s_0) = \arg\max_{\pi} V_\pi(s_0)
+\end{eqnarray}
+\vspace{0.1cm}
+
+On définit d'une manière similaire la Q-value qui renseigne l'espérance du résultat pour une politique et un état initial donnés, à la différence cette fois-ci que la première action effectuée $a_0$ est déterminée. La politique n'est appliquée que pour les actions suivantes. 
+
+\begin{eqnarray}
+Q_\pi(s_0,a_0) = E[R\mid(s_0,a_0,\pi)]
+\end{eqnarray}
+\vspace{0.1cm}
+
+Et on notera de la même manière $Q_{opt}$ la Q-value pour une politique optimale.\\
+
+Pour agir de manière optimale, il suffit donc de connaître $Q_{opt}$. En effet à tout instant, dans un état donné, il suffit de choisir l'action maximisant $Q_{opt}$. En raisonnant récursivement, on sait que la suite de nos actions seront optimales, ce qui valide le choix de notre action (qui n'est acceptable que si suivi d'une politique optimale, d'après la définition de la Q-value (3) ). On note donc :
+
+\begin{eqnarray}
+\pi_{opt}(s) = \arg\max_{a \in A} Q_{opt}(s,a)
+\end{eqnarray}
+\vspace{0.1cm}
+
+
+On peut aussi retrouver $Q$ à partir de $V$ :
+
+\begin{eqnarray}
+Q_{\pi}(s,a) = \sum\limits_{s'} T(s,a,s')(Reward(s,a,s') + \gamma V_\pi(s'))
+\end{eqnarray}
+\vspace{0.1cm}
+
+Où, comme précisé en première partie, $T(s,a,s')$ est la probabilité de tomber dans l'état $s'$ suite au choix de l'action $a$ depuis $s$, $Reward(s,a,s')$ la récompense associée à cette transition, et $\gamma$ le facteur de dévaluation temporel.\\
+
+Ces définitions étant données, plusieurs premières approches sont envisageables.
+
+\subsection{Value iteration}
+
+En supposant la connaissance complète du système, un première approche consiste à calculer la politique ou la value function itérativement, en précisant leurs valeurs jusqu'à convergence. Plusieurs variantes existent, la plus notable étant la "value iteration", où l'on procède uniquement par itération sur la value function :
+
+\begin{eqnarray}
+V_{i+1}(s) := \max_{a \in A} \Bigl\{ \sum\limits_{s'} T(s,a,s')(Reward(s,a,s') + \gamma V_i(s')) \Bigr\}
+\end{eqnarray}
+\vspace{0.1cm}
+
+Pour tout $s \in S$ on initialise $V_0(s)$ aléatoirement ou par intuition, puis à chaque itération, on met à jour la valeur de $V$ selon la formule ci-dessus, toujours pour chaque état $s$ possible. On continue jusqu'à convergence, ce qui nous donne ainsi les valeurs $V_{opt}(s)$ pour tout $s$. On peut ainsi facilement retrouver $Q_{opt}$ à l'aide de (5) et donc notre politique optimale avec (4).\\
+
+Le problème de ce type de stratégie est la nécessité de calculer à l'avance $V$ pour tous les états $s$ envisageables, ce qui est vite problématique quand l'espace des états est grand. En particulier, pour le Pacman, les états résultants des différentes combinaisons des positions du Pacman, des fantômes, de la nourriture etc. le nombre d'états est beaucoup trop grand pour procéder ainsi.
+
+
+\subsection{Reinforcement Learning}
+
+Une autre solution envisagée est donc celle du Reinforcement Learning. Dans ce type d'apprentissage, l'agent apprend à partir de sa propre expérience. On n'a donc pas besoin de connaître parfaitement le système et d'effectuer le lourd calcul préalable de la Value iteration.
+
+\subsubsection{Q-Learning}
+
+Un algorithme de Reinforcement Learning classique est celui du Q-Learning. Dans cette approche, on cherche à estimer les valeurs $Q_{opt}(s,a)$ qui correspondent à la qualité d'une action $a$ dans un état $s$. On construit une matrice $Q_{table}$ de taille $(card(S), card(A))$ qui contient nos approximations $\hat{Q}_{opt}(s,a)$, on initialise arbitrairement ces valeurs (par exemple à 0), puis on commence une partie et on itère :
+\begin{itemize}
+\item Au vu de l'état actuel $s$, on choisit la meilleure action $a$ c'est à dire celle qui donne à la lecture de la matrice $Q_{table}$ la valeur de $\hat{Q}_{opt}(s,a)$ la plus élevée. 
+\item On effectue l'action et on récupère la récompense observée $r$ et le nouvel état $s'$.
+\item On met à jour $\hat{Q}_{opt}(s,a)$ dans la matrice $Q_{table}$ selon (7) et on recommence (si $s'$ est un état final, on commence une nouvelle partie).
+\end{itemize}
+
+\begin{eqnarray}
+\hat{Q}_{opt}(s,a) := \hat{Q}_{opt}(s,a) + \alpha \Bigl\{ r + \gamma \max_{a' \in A} \hat{Q}_{opt}(s',a') - \hat{Q}_{opt}(s,a) \Bigr\}
+\end{eqnarray}
+\vspace{0.1cm}
+
+On construit ainsi notre matrice $Q_{table}$ par l'expérience, notre agent apprenant de ses récompenses avec $\alpha$ comme vitesse d'apprentissage. On notera que les valeurs de $\hat{Q}_{opt}(s,a)$ pour $s$ état final ne sont jamais mises à jour, elles devront être correctement initialisées. On pourra aussi introduire un facteur d'exploration $\epsilon$ qui décrit la probabilité de choisir une action au hasard plutôt que de la choisir selon les valeurs de $\hat{Q}_{opt}(s,a)$.\\
+
+En laissant l'agent parcourir les différents états possibles, cette méthode donne vite de très bons résultats. Cependant encore une fois, le Pacman présente un nombre d'états possibles très grand qui sont ainsi difficiles à parcourir entièrement. La méthode du Q-Learning simple n'est donc pas efficace sur ce jeu, mais des variantes sont envisageables, comme celle du Deep Q-Learning.
+
+\subsubsection{Deep Q-Learning}
+
+Le principe du Deep Q-Learning peut se résumer en une idée : remplacer la matrice $Q_{table}$ par un réseau de neurones $Q_{network}$.\\
+
+En effet, le problème du Q-Learning est qu'il estime $\hat{Q}_{opt}(s,a)$ pour un état et une action précise, et qu'il ne généralise pas ses résultats aux situations similaires (chaque couple $(s,a)$ correspond bien à une valeur unique dans la matrice). Ainsi, quand le nombre de couples devient trop élevés, l'agent met trop de temps à tous les explorer et converger.\\
+
+L'idée du Deep Q-Learning est donc de généraliser l'apprentissage sur une situation à l'ensemble des situations, en utilisant un modèle de machine learning. On construit donc un réseaux de neurones $Q_{network}$ qui prend en entrée un état $s$ et qui renvoie en sortie $n$ valeurs $\hat{Q}_{opt}(s,a)$, avec $n=card(A)$. Le rôle de $Q_{table}$ étant de donner $\hat{Q}_{opt}(s,a)$ pour un couple $(s,a)$ donné, on peut donc effectuer l'algorithme du Q-Learning en utilisant $Q_{network}$ à la place. L'étape de mise à jour de la valeur est remplacée par une ré-évaluation des poids du réseaux de neurones en considérant le résultat de l'expérience.\\
+
+Pour résumer, on initialise un réseau de neurones $Q_{network}$, puis on commence une partie et on itère :
+\begin{itemize}
+\item On passe l'état actuel $s$ dans $Q_{network}$, ce qui nous donne nos différentes valeurs $\hat{Q}_{opt}(s,a)$ pour $a\in A$. On choisit la meilleure action $a$ c'est à dire celle associée à la valeur la plus élevée. 
+\item On effectue l'action et on récupère la récompense observée $r$ et le nouvel état $s'$.
+\item On passe le nouvel état $s'$ dans $Q_{network}$, ce qui nous donne nos différentes valeurs $\hat{Q}_{opt}(s',a)$ pour $a\in A$. On récupère ainsi $\max_{a' \in A} \hat{Q}_{opt}(s',a')$.
+\item On fixe $r + \gamma \max_{a' \in A} \hat{Q}_{opt}(s',a')$ comme nouvelle valeur cible de $\hat{Q}_{opt}(s,a)$, et on garde les valeurs obtenues à la première étape pour les autres actions.
+\item On met à jour les poids de $Q_{network}$ par backpropagation et on recommence (si $s'$ est un état final, on commence une nouvelle partie).
+\end{itemize}
+
+On peut encore une fois introduire un facteur d'exploration $\epsilon$. Une autre astuce efficace est celle de l'expérience replay. L'idée est de stocker chaque nouvelle observation dans une \texttt{replay memory}, et d'entrainer à chaque étape le réseau non pas avec une unique nouvelle valeur mais avec un mini-batch tiré aléatoirement parmi la \texttt{replay memory}. Cette technique permet d'éviter de tomber dans certains minima locaux et elle permet surtout d'accélérer le début de l'entrainement du réseau en peuplant la \texttt{replay memory} par des données extérieures, comme des parties jouées par un humain ou une autre IA.\\
+
+Du point de vue de la modélisation du problème, plusieurs solutions sont envisageables pour structurer les données en un vecteur de features. L'idée ici est de travailler sur les images brutes, sans modéliser d'avantage, de manière à créer un modèle général, utilisable notamment pour les jeux Atari, non dépendant de spécificités du Pacman. Chaque état est alors simplement représenté par l'ensemble de ses pixels, ou alors dans certaines modélisations par l'ensemble des pixels des dernières images (pour conserver les informations de mouvement). Ce choix de modélisation nous incite à travailler en Deep Learning, réputé pour son efficacité avec les images.\\
+
+De nombreuses questions propres au Deep Learning se posent alors, comme évoqué en partie III.\\
+
+%------------------------------------------------
+\pagebreak
+
+\section{Modèles et résultats}
+
+Nous allons dans cette partie nous intéresser aux modèles présentés et implémentés dans l'article \textit{Recurrent Deep Q-Learning for PAC-MAN} (Kushal Ranjan, Amelia Christensen, Bernardo Ramos, \textsc{Stanford}) ainsi qu'aux résultats obtenus. Le but de cet article est de développer un agent d'apprentissage renforcé pour PAC-MAN, avec une combinaison de réseaux convolutionnels et récurrents, ainsi que des unités LSTM, afin de modéliser la Q-value function $Q(s,a)$ introduite précédemment.
+
+\subsection{Architectures}
+
+Afin de répondre au problème posé, plusieurs architectures ont été proposées.
+
+\paragraph{Remarque préliminaire}
+
+L'utilisation de couches fully connected est permise car le problème est dans a situation suivante :
+\begin{itemize}
+\item les images d'entrée sont de taille fixe (540x540 réduit à 224x224) ;
+\item l'information spatiale est simplifiée par les différentes couches décrites ci-après.
+\end{itemize}
+
+
+\subsubsection{Inception-LSTM}
+
+La première architecture vise à tester l'effet du transfer learning sur la capacité d'apprentissage du réseau. Le transfer learning, discipline à part entière, consiste à utiliser une partie d'un réseau déjà entraîné pour extraire des features dans une autre architecture. L'architecture suit le déroulement suivant :
+\begin{enumerate}
+\item extraction de features à partir des images brutes, utilisation de Google Inception v3 (\texttt{fourth max-pool}, consistant à compresser l'image en regroupant plusieurs pixels en un seul portant la valeur maximale) ;
+\item alimentation d'un fully connected layer avec les features extraites ;
+\item ajout d'une couche LSTM (Long Short-Term Memory, les états cachés contiennent la mémoire des actions passées) ;
+\item récupération des Q-values pour les cinq actions via une couche FC-5 (fully connected, couche de sortie de taille 5).
+\end{enumerate}
+
+L'architecture est résumée par le schéma figure 2.
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=0.7\textwidth]{inception-lstm.png}
+\caption{Architecture Inception-LSTM}
+\end{center}
+\end{figure}
+
+\pagebreak
+
+\subsubsection{Convolutional-LSTM}
+
+Ensuite, une architecture entraînée à partir de zéro est proposée. Elle suit le déroulement suivant :
+\begin{enumerate}
+\item trois couches de pooling (avec couche de correction) ;
+\item deux couches de réseaux fully connected FC1 et FC2 ;
+\item ajout d'une couche LSTM ;
+\item récupération des Q-values pour les cinq actions via une couche FC-5 (fully connected, couche de sortie de taille 5).
+\end{enumerate}
+
+L'architecture est résumée par le schéma figure 3.
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=0.7\textwidth]{conv-lstm.png}
+\caption{Architecture Inception-LSTM}
+\end{center}
+\end{figure}
+
+\subsubsection{Convolutional sans mémoire}
+
+L'objectif de cette architecture est de fournir un benchmark similaire à l'architecture précédente, mais sans la couche LSTM dotée de mémoire. Elle suit le déroulement suivant~:
+\begin{enumerate}
+\item trois couches de pooling (avec couche de correction) ;
+\item une couche de réseau fully connected FC1 ;
+\item une couche de réseau fully connected FC2 de sortie de taille 5, qui fournit directement les Q-values.
+\end{enumerate}
+
+\subsection{Implémentation, résultats et analyses}
+
+Ces méthodes sont implémentées à l'aide de TensorFlow, sur une version pré-existante de PAC-MAN en Python (cf. \textit{Berkeley's Introduction to Artificial Intelligence}).\\
+
+
+
+Les deux premières architectures (Conv-LSTM et Inception-LSTM) ont été appliquée sur 288 itérations sur la grille moyenne \texttt{mediumGrid}. Pour chaque itération les modèles ont été appliqué 6 fois et la moyenne de la perte a été calculée et est présentée en figure 4. On constate une baisse et une stabilisation de la perte à partir d'une centaine de parties. Cependant, cette baisse ne constitue pas à elle seule une situation convenable. En effet, les actions résultant pour l'agent Pac-Man sont en majorité des cycles de répétitions droite-gauche ou haut-bas, sans aucune considération des fantômes ou de la nourriture.\\
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=0.8\textwidth]{perf1.png}
+\caption{Perte moyenne par partie pour Conv-LSTM et Inception-LSTM.}
+\end{center}
+\end{figure}
+
+ 
+La conclusion apportée est celle que l'entraînement sur quelques milliers d'itérations n'est pas suffisant pour aboutir à des paramètres corrects. Selon les estimations fournies, il faudrait 1000 heures pour entrainer un unique réseau convolutionnel sur un nombre suffisant d'itérations (325 000). Cela est aussi en partie limité par la nécessité de récupérer 'physiquement' les images pour le dataset.\\
+
+\pagebreak
+
+\paragraph{Apprentissage supervisé}
+
+Afin de contourner cette difficulté, une solution proposée est d'ajouter une partie d'apprentissage supervisé afin d'initialiser le modèle. Cette méthode permet de diviser le nombre de paramètres utilisé par environ 4 pour chacune des architectures présentées.\\
+
+Pour conduire cet apprentissage supervisé, la base du training set est composée des images RGB brutes, de deux dispositions différentes :
+\begin{itemize}
+\item une grille simple, de taille 5x6, avec 4 éléments de nourriture et un fantôme ;
+\item une grille plus large, avec beaucoup de nourriture et plusieurs fantômes.
+\end{itemize}
+
+Ces images ont été récupérées avec \texttt{ImageGrab}. Un dataset de 6500 images étiquetées a été créé en jouant à PAC-MAN manuellement. Elles sont ensuite ré-échantillonnées avec \texttt{opencv} pour passer d'une résolution de 540x540 à 224x224 afin de pouvoir utiliser Inception V3 pour extraire les features.\\
+
+
+En seulement huit heures, 11 000 itérations ont été réalisées, par batch de 100 (correspondant à 1 100 000 exemples échantillonnés depuis le dataset de 6 500 images). Cela aurait demandé environ 5 mois de calcul pour une implémentation directe en reinforcement learning avec l'architecture Conv-LSTM. On observe en figure 5 une amélioration correcte des scores au fur et à mesure de l'entrainement du réseau convolutionnel. Cela est de bonne augure pour une application éventuelle de l'architecture deep Q-learning Conv-LSTM. La validité d'un tel réseau convolutionnel pour une application de deep Q-learning est grandement envisageable grâce à la phase d'apprentissage supervisé, éliminant le besoin d'entraîner celui-ci sur un nombre d'états bien trop important.\\
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=0.8\textwidth]{perf2.png}
+\caption{Score moyen par apprentissage supervisé.}
+\end{center}
+\end{figure}
+
+
+Un test a été conduit en initialisant un modèle de deep Q-learning par apprentissage supervisé. Cependant, les performances n'ont pas bénéficié d'une grande amélioration, le score se stabilisant autour de -42 après une trentaine de parties. Les limites rencontrées sont majoritairement dues au manque de puissance de calcul et au besoin d'avoir un retour 'physique' de l'écran du jeu pour l'utiliser dans le modèle. Par ailleurs, aucune conclusion claire n'est tirée de la présence ou non de la couche LSTM finale.\\
+
+%------------------------------------------------
+
+\pagebreak
+\section*{Bibliographie}
+\addcontentsline{toc}{section}{Bibliographie}
+
+\begin{itemize}
+\item \textit{Recurrent Deep Q-Learning for PAC-MAN}, Kushal Ranjan, Amelia Christensen \& Bernardo Ramos (Stanford)
+\item \url{https://www.nervanasys.com/demystifying-deep-reinforcement-learning/}
+\item \textit{Playing Atari with Deep Reinforcement Learning}, Volodymyr Mnih, Koray Kavukcuoglu, David Silver, Alex Graves, Ioannis Antonoglou, Daan Wierstra \& Martin Riedmiller (Deepmind Technologies)
+\item \url{http://www.danielslater.net/2016/03/deep-q-learning-pong-with-tensorflow.html}
+\item \url{https://medium.com/@ageitgey/machine-learning-is-fun-part-3-deep-learning-and-convolutional-neural-networks-f40359318721#.yrxrjyora}
+\item CS188, \textit{Introduction to Artificial Intelligence}, Berkeley
+\end{itemize}
+
+%\pagebreak
+%\section*{Conclusion}
+%\addcontentsline{toc}{section}{Conclusion}
+
+
+%----------------------------------------------------------------------------------------
+
+\end{document}
